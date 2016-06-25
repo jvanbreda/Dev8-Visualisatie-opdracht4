@@ -142,11 +142,7 @@ public class DataProvider {
     private Vector2 getCoordinates(JSONArray jArray){
         JSONObject jObject = jArray.getJSONObject(0);
         JSONArray rdCoordinates = jObject.getJSONArray("rd");
-        Vector2 coordinates = new Vector2();
-        coordinates.setRdX(rdCoordinates.getFloat(0));
-        coordinates.setRdY((rdCoordinates.getFloat(1)));
-        
-        return coordinates;
+        return null;
     }
     
 }
