@@ -101,6 +101,11 @@ public class Complaint {
     public void setFeedbackRequested(boolean feedbackRequested) {
         this.feedbackRequested = feedbackRequested;
     }
+    
+    @Override
+    public String toString(){
+        return "Complaint: " + complaintMedium + "|" + date + "|" + count + "|" + streetName + "|" + postCode + "|" + complaintType;
+    }
 
     
 }

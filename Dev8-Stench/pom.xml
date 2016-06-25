@@ -25,5 +25,12 @@
             <version>2.2.1</version>
             <type>jar</type>
         </dependency>
+        
+        <dependency>
+            <groupId>org.apache.httpcomponents</groupId>
+            <artifactId>httpclient</artifactId>
+            <version>4.1-alpha1</version>
+        </dependency>
+
     </dependencies>
 </project>

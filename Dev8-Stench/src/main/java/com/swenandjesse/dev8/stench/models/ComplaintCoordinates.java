@@ -12,8 +12,7 @@ package com.swenandjesse.dev8.stench.models;
 public class ComplaintCoordinates {
     
     private Complaint complaint;
-    private long rdX;
-    private long rdY;
+    private Vector2 rdCoordinates;
 
     public Complaint getComplaint() {
         return complaint;
@@ -23,21 +22,15 @@ public class ComplaintCoordinates {
         this.complaint = complaint;
     }
 
-    public long getRdX() {
-        return rdX;
+    public Vector2 getRdCoordinates() {
+        return rdCoordinates;
     }
 
-    public void setRdX(long rdX) {
-        this.rdX = rdX;
+    public void setRdCoordinates(Vector2 rdCoordinates) {
+        this.rdCoordinates = rdCoordinates;
     }
-
-    public long getRdY() {
-        return rdY;
-    }
-
-    public void setRdY(long rdY) {
-        this.rdY = rdY;
-    }
+    
+    
     
     
     

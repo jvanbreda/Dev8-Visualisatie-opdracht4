@@ -5,10 +5,148 @@
  */
 package com.swenandjesse.dev8.stench.data;
 
+import com.sun.javafx.fxml.builder.URLBuilder;
+import com.swenandjesse.dev8.stench.models.Complaint;
+import com.swenandjesse.dev8.stench.models.ComplaintCoordinates;
+import com.swenandjesse.dev8.stench.models.Vector2;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.net.URISyntaxException;
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Scanner;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.URI;
+import processing.data.JSONArray;
+import processing.data.JSONObject;
+
+
 /**
  *
  * @author Jesse
  */
 public class DataProvider {
+    
+    private final String API_KEY = "7aKDCk1a2C12QMLRq7coN23h4Fcu4Lar5KaTLZVJ";
+    
+    public String getData(URL url) {
+        String allData = "";
+        try {
+            BufferedReader br = new BufferedReader(new InputStreamReader(url.openStream()));
+            Iterator lines = br.lines().iterator();
+            //Skip table headers
+            lines.next();
+            int counter = 0;
+            while (lines.hasNext()) {
+                String line = (String) lines.next();
+                allData += line + "\n";
+                counter++;
+                System.out.println(counter);
+            }
+        } catch (IOException e) {
+            System.err.println("IO Exception occured while reading the data!");
+        }
+        return allData;
+    }
+    
+    public List<Complaint> getDataList() {
+        List<Complaint> complaints = new ArrayList<>();
+        String data = "";
+        try {
+            ClassLoader classLoader = getClass().getClassLoader();
+            File file = new File(classLoader.getResource("HACKATON--KLACHTEN-2011.csv").getFile());
+            data = getData(file.toURI().toURL());
+        } catch (IOException e) {
+            System.err.println("IO Exception occured while transforming data to list!");
+        }
+        
+        Scanner fileScanner = new Scanner(data);
+        fileScanner.useDelimiter("\n");
+        
+        while (fileScanner.hasNext()){
+            String line = fileScanner.next();
+            Scanner lineScanner = new Scanner(line);
+            lineScanner.useDelimiter(";");
+            Complaint c = new Complaint();
+            c.setComplaintMedium(lineScanner.next());
+            c.setDate(lineScanner.next());
+            c.setCount(Integer.parseInt(lineScanner.next()));
+            c.setStreetName(lineScanner.next());
+            c.setPostCode(lineScanner.next());
+            c.setCity(lineScanner.next());
+            c.setComplaintType(lineScanner.next());
+            c.setComplaintSubType(lineScanner.next());
+            c.setComplaintSubSubType(lineScanner.next());
+            c.setFeedbackRequested(lineScanner.next().equalsIgnoreCase("j"));
+            
+            if(c.getComplaintType().equalsIgnoreCase("Stank")){
+                complaints.add(c);
+            }
+        }
+        
+        return complaints;
+    }
+    
+    public List<ComplaintCoordinates> getDataWithCoordinates() {
+        List<ComplaintCoordinates> complaintsCoordinatesList = new ArrayList<>();
+        try {
+            List<Complaint> complaints = getDataList();
+            StringBuilder sb = new StringBuilder();
+            String baseURL = "https://postcode-api.apiwise.nl/v2/addresses/?postcode=";
+            sb.append(baseURL);
+            for (Complaint c : complaints){
+                sb.setLength(baseURL.length());
+                sb.append(c.getPostCode());
+                System.out.println(sb.toString());
+                JSONArray jArray = getResponseJSON(new URL(sb.toString()));
+                ComplaintCoordinates cc = new ComplaintCoordinates();
+                cc.setComplaint(c);
+                cc.setRdCoordinates(getCoordinates(jArray));
+                complaintsCoordinatesList.add(cc);
+            }
+        } catch (MalformedURLException e){
+            System.out.println("Exception occurred during converting");
+        }
+        return complaintsCoordinatesList;
+    }
+    
+    public JSONArray getResponseJSON(URL url){
+        String json  = "";
+        try {            
+            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+            conn.setRequestMethod("GET");
+            conn.setRequestProperty("X-Api-Key", API_KEY);
+            int responseCode = conn.getResponseCode();
+            if (responseCode == HttpURLConnection.HTTP_OK){
+                BufferedReader br = new BufferedReader(new InputStreamReader(conn.getInputStream()));
+                String line;
+                while ((line = br.readLine()) != null){
+                    json += line + "\n";
+                }
+                br.close();
+            }
+            
+        } catch (Exception e){
+            System.out.println("Http request failed!");
+        }
+        JSONArray jArray = JSONArray.parse(json);
+        
+        return jArray;
+    }
+    
+    private Vector2 getCoordinates(JSONArray jArray){
+        JSONObject jObject = jArray.getJSONObject(0);
+        JSONArray rdCoordinates = jObject.getJSONArray("rd");
+        Vector2 coordinates = new Vector2();
+        coordinates.setRdX(rdCoordinates.getFloat(0));
+        coordinates.setRdY((rdCoordinates.getFloat(1)));
+        
+        return coordinates;
+    }
     
 }

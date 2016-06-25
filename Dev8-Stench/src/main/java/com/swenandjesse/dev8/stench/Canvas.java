@@ -5,6 +5,13 @@
  */
 package com.swenandjesse.dev8.stench;
 
+import com.swenandjesse.dev8.stench.data.DataProvider;
+import com.swenandjesse.dev8.stench.models.Complaint;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import processing.core.PApplet;
 
 /**
@@ -12,15 +19,22 @@ import processing.core.PApplet;
  * @author Jesse
  */
 public class Canvas extends PApplet {
-    
+
+    private List<Complaint> complaintList;
+
     @Override
-    public void setup(){
-        size(600, 600); 
+    public void setup() {
+        try {
+            size(600, 600);
+            System.out.println(new DataProvider().getDataWithCoordinates());
+        } catch (Exception ex) {
+            Logger.getLogger(Canvas.class.getName()).log(Level.SEVERE, null, ex);
+        }
     }
-    
+
     @Override
-    public void draw(){
-        
+    public void draw() {
+
     }
-    
+
 }
