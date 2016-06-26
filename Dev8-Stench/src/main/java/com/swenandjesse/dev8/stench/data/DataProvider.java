@@ -103,10 +103,10 @@ public class DataProvider {
                 sb.setLength(baseURL.length());
                 sb.append(c.getPostCode());
                 System.out.println(sb.toString());
-                JSONArray jArray = getResponseJSON(new URL(sb.toString()));
+                JSONObject jObject = getResponseJSON(new URL(sb.toString()));
                 ComplaintCoordinates cc = new ComplaintCoordinates();
                 cc.setComplaint(c);
-                cc.setRdCoordinates(getCoordinates(jArray));
+                cc.setRdCoordinates(getCoordinates(jObject));
                 complaintsCoordinatesList.add(cc);
             }
         } catch (MalformedURLException e){
@@ -115,7 +115,7 @@ public class DataProvider {
         return complaintsCoordinatesList;
     }
     
-    public JSONArray getResponseJSON(URL url){
+    private JSONObject getResponseJSON(URL url){
         String json  = "";
         try {            
             HttpURLConnection conn = (HttpURLConnection) url.openConnection();
@@ -134,15 +134,28 @@ public class DataProvider {
         } catch (Exception e){
             System.out.println("Http request failed!");
         }
-        JSONArray jArray = JSONArray.parse(json);
+        //System.out.println(json);
+        JSONObject jObject = JSONObject.parse(json);
         
-        return jArray;
+        return jObject;
     }
     
-    private Vector2 getCoordinates(JSONArray jArray){
-        JSONObject jObject = jArray.getJSONObject(0);
-        JSONArray rdCoordinates = jObject.getJSONArray("rd");
-        return null;
+    private Vector2 getCoordinates(JSONObject jObject){
+        float rdX = 0;
+        float rdY = 0;
+        
+        JSONObject _embedded = jObject.getJSONObject("_embedded");
+        JSONArray addresses = _embedded.getJSONArray("addresses");
+        JSONObject rd;
+        if(addresses.size() > 0){
+            JSONObject fullInformation = addresses.getJSONObject(0);
+            JSONObject geo = fullInformation.getJSONObject("geo");
+            JSONObject center = geo.getJSONObject("center");
+            rd = center.getJSONObject("rd");
+            rdX = rd.getJSONArray("coordinates").getFloat(0);
+            rdY = rd.getJSONArray("coordinates").getFloat(1);
+        }
+        return new Vector2(rdX, rdY);
     }
     
 }

@@ -5,9 +5,15 @@
  */
 package com.swenandjesse.dev8.stench;
 
+import com.swenandjesse.dev8.stench.data.DataProvider;
 import com.swenandjesse.dev8.stench.models.Vector2;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import processing.core.PApplet;
 import processing.core.PImage;
+import processing.data.JSONObject;
 import processing.event.MouseEvent;
 
 /**
@@ -29,9 +35,9 @@ public class Canvas extends PApplet {
     @Override
     public void setup() {
 //        testImage = loadImage("testimage.jpg");
-        testImage = loadImage("Pepe_rare.png");
+        //testImage = loadImage("Pepe_rare.png");
         
-        worldSize = new Vector2<>(testImage.width, testImage.height);
+//        worldSize = new Vector2<>(testImage.width, testImage.height);
         viewport = new Vector2<>(600, 600);
         position = new Vector2<>(0f, 0f);
         scale = 1f;
@@ -39,6 +45,8 @@ public class Canvas extends PApplet {
         frameRate(60);
 
         mousePosition = new Vector2<>(mouseX, mouseY);
+        
+        new DataProvider().getDataWithCoordinates();
     }
 
     @Override
@@ -51,7 +59,7 @@ public class Canvas extends PApplet {
         translate(-position.getX(), -position.getY());
         scale(scale);
         
-        image(testImage, 0, 0);
+        //image(testImage, 0, 0);
         
         // Static / Absolute, for UI
         popMatrix();
