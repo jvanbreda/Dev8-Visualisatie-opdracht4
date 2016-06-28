@@ -8,6 +8,7 @@ package com.swenandjesse.dev8.stench.data;
 import com.sun.javafx.fxml.builder.URLBuilder;
 import com.swenandjesse.dev8.stench.models.Complaint;
 import com.swenandjesse.dev8.stench.models.ComplaintCoordinates;
+import com.swenandjesse.dev8.stench.models.Crematoria;
 import com.swenandjesse.dev8.stench.models.Vector2;
 import java.io.BufferedReader;
 import java.io.File;
@@ -32,6 +33,7 @@ import processing.data.JSONObject;
  */
 public class DataProvider {
     
+    // Should probably be in a config file
     private final String API_KEY = "7aKDCk1a2C12QMLRq7coN23h4Fcu4Lar5KaTLZVJ";
     
     public String getData(URL url) {
@@ -158,4 +160,51 @@ public class DataProvider {
         return new Vector2(rdX, rdY);
     }
     
+//    public String getData(URL url) {
+//        String allData = "";
+//        try {
+//            BufferedReader br = new BufferedReader(new InputStreamReader(url.openStream()));
+//            Iterator lines = br.lines().iterator();
+//            while (lines.hasNext()) {
+//                String line = (String) lines.next();
+//                allData += line + "\n";
+//            }
+//        } catch (IOException e) {
+//            System.err.println("IO Exception occured while reading the data!");
+//        }
+//        return allData;
+//    }
+
+    public List<Crematoria> getCrematoriaList() {
+        List<Crematoria> crematoriaList = new ArrayList<>();
+        String data = "";
+        try {
+            ClassLoader classLoader = getClass().getClassLoader();
+            File file = new File(classLoader.getResource("Crematoria_Rotterdam_eo.csv").getFile());
+            data = getData(file.toURI().toURL());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        Scanner fileScanner = new Scanner(data);
+        fileScanner.useDelimiter("\n");
+
+        // Skip first row with column names
+        fileScanner.next();
+
+        while (fileScanner.hasNext()) {
+            String line = fileScanner.next();
+            Scanner lineScanner = new Scanner(line);
+            lineScanner.useDelimiter(";");
+            Crematoria crematoria = new Crematoria();
+            crematoria.setName(lineScanner.next());
+            crematoria.setAddress(lineScanner.next());
+            crematoria.setCity(lineScanner.next());
+            crematoria.setRdX(Integer.parseInt(lineScanner.next()));
+            crematoria.setRdY(Integer.parseInt(lineScanner.next()));
+            crematoriaList.add(crematoria);
+        }
+
+        return crematoriaList;
+    }
 }
