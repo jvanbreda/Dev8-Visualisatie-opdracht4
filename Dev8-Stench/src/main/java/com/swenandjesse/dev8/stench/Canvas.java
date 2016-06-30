@@ -6,9 +6,12 @@
 package com.swenandjesse.dev8.stench;
 
 import com.swenandjesse.dev8.stench.data.DataProvider;
+import com.swenandjesse.dev8.stench.models.Crematoria;
+import com.swenandjesse.dev8.stench.models.Rect;
 import com.swenandjesse.dev8.stench.models.Vector2;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import processing.core.PApplet;
@@ -26,27 +29,33 @@ public class Canvas extends PApplet {
     private Vector2<Integer> worldSize;
     private Vector2<Integer> viewport;
     private Vector2<Float> position;
+    private Rect<Integer> drawArea;
     private float scale;
 
     private Vector2<Integer> mousePosition;
     
     private PImage testImage;
+    
+    private List<Crematoria> crematorias;
 
     @Override
     public void setup() {
-//        testImage = loadImage("testimage.jpg");
-        //testImage = loadImage("Pepe_rare.png");
+        frame.setTitle("Jesse and Swen - Development 8 - Assignment 4 - Stankoverlast");
         
-//        worldSize = new Vector2<>(testImage.width, testImage.height);
+//        testImage = loadImage("testimage.jpg");
+        testImage = loadImage("map.png");
+        
+        worldSize = new Vector2<>(testImage.width, testImage.height);
         viewport = new Vector2<>(600, 600);
         position = new Vector2<>(0f, 0f);
+        drawArea = new Rect<>(0, 0, viewport.getX(), viewport.getY());
         scale = 1f;
         size(viewport.getX(), viewport.getY());
         frameRate(60);
 
         mousePosition = new Vector2<>(mouseX, mouseY);
         
-        new DataProvider().getDataWithCoordinates();
+        crematorias = new DataProvider().getCrematoriaList();
     }
 
     @Override
@@ -59,7 +68,13 @@ public class Canvas extends PApplet {
         translate(-position.getX(), -position.getY());
         scale(scale);
         
-        //image(testImage, 0, 0);
+        image(testImage, 0, 0);
+        
+        for (Crematoria crematoria: crematorias) {
+            fill(255, 0, 0);
+            stroke(0);
+            ellipse(map(crematoria.getRdX(), 56682, 107674, drawArea.getX(), drawArea.getX() + drawArea.getWidth()), map(crematoria.getRdY(), 447962, 431038, drawArea.getY(), drawArea.getY() + drawArea.getHeight()), 5, 5);
+        }
         
         // Static / Absolute, for UI
         popMatrix();
