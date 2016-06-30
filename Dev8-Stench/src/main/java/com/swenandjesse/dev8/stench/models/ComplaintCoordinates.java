@@ -12,7 +12,7 @@ package com.swenandjesse.dev8.stench.models;
 public class ComplaintCoordinates {
     
     private Complaint complaint;
-    private Vector2 rdCoordinates;
+    private Vector2 coordinates;
 
     public Complaint getComplaint() {
         return complaint;
@@ -22,13 +22,14 @@ public class ComplaintCoordinates {
         this.complaint = complaint;
     }
 
-    public Vector2 getRdCoordinates() {
-        return rdCoordinates;
+    public Vector2 getCoordinates() {
+        return coordinates;
     }
 
-    public void setRdCoordinates(Vector2 rdCoordinates) {
-        this.rdCoordinates = rdCoordinates;
+    public void setCoordinates(Vector2 coordinates) {
+        this.coordinates = coordinates;
     }
+    
     
     
     

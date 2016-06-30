@@ -6,6 +6,7 @@
 package com.swenandjesse.dev8.stench.data;
 
 import com.sun.javafx.fxml.builder.URLBuilder;
+import com.swenandjesse.dev8.stench.HelperMethods;
 import com.swenandjesse.dev8.stench.models.Complaint;
 import com.swenandjesse.dev8.stench.models.ComplaintCoordinates;
 import com.swenandjesse.dev8.stench.models.Vector2;
@@ -32,7 +33,8 @@ import processing.data.JSONObject;
  */
 public class DataProvider {
     
-    private final String API_KEY = "7aKDCk1a2C12QMLRq7coN23h4Fcu4Lar5KaTLZVJ";
+    //Used for old lookup method for postcode coordinates, with the use of the google api, this is deprecated
+    //private final String API_KEY = "7aKDCk1a2C12QMLRq7coN23h4Fcu4Lar5KaTLZVJ";
     
     public String getData(URL url) {
         String allData = "";
@@ -97,17 +99,19 @@ public class DataProvider {
         try {
             List<Complaint> complaints = getDataList();
             StringBuilder sb = new StringBuilder();
-            String baseURL = "https://postcode-api.apiwise.nl/v2/addresses/?postcode=";
+            String baseURL = "http://maps.googleapis.com/maps/api/geocode/json?address=";
             sb.append(baseURL);
             for (Complaint c : complaints){
-                sb.setLength(baseURL.length());
-                sb.append(c.getPostCode());
-                System.out.println(sb.toString());
-                JSONObject jObject = getResponseJSON(new URL(sb.toString()));
-                ComplaintCoordinates cc = new ComplaintCoordinates();
-                cc.setComplaint(c);
-                cc.setRdCoordinates(getCoordinates(jObject));
-                complaintsCoordinatesList.add(cc);
+                if (!c.getPostCode().equals("")){
+                    sb.setLength(baseURL.length());
+                    sb.append(c.getPostCode());
+                    System.out.println(sb.toString());
+                    JSONObject jObject = getResponseJSON(new URL(sb.toString()));
+                    ComplaintCoordinates cc = new ComplaintCoordinates();
+                    cc.setComplaint(c);
+                    cc.setCoordinates(getCoordinates(jObject));
+                    complaintsCoordinatesList.add(cc);
+                }
             }
         } catch (MalformedURLException e){
             System.out.println("Exception occurred during converting");
@@ -120,7 +124,6 @@ public class DataProvider {
         try {            
             HttpURLConnection conn = (HttpURLConnection) url.openConnection();
             conn.setRequestMethod("GET");
-            conn.setRequestProperty("X-Api-Key", API_KEY);
             int responseCode = conn.getResponseCode();
             if (responseCode == HttpURLConnection.HTTP_OK){
                 BufferedReader br = new BufferedReader(new InputStreamReader(conn.getInputStream()));
@@ -140,22 +143,21 @@ public class DataProvider {
         return jObject;
     }
     
-    private Vector2 getCoordinates(JSONObject jObject){
-        float rdX = 0;
-        float rdY = 0;
+    private Vector2 getCoordinates(JSONObject jObject){      
+        float latitude = 0, longitude = 0;
         
-        JSONObject _embedded = jObject.getJSONObject("_embedded");
-        JSONArray addresses = _embedded.getJSONArray("addresses");
-        JSONObject rd;
-        if(addresses.size() > 0){
-            JSONObject fullInformation = addresses.getJSONObject(0);
-            JSONObject geo = fullInformation.getJSONObject("geo");
-            JSONObject center = geo.getJSONObject("center");
-            rd = center.getJSONObject("rd");
-            rdX = rd.getJSONArray("coordinates").getFloat(0);
-            rdY = rd.getJSONArray("coordinates").getFloat(1);
+        JSONArray results = jObject.getJSONArray("results");
+        if (results.size() > 0){
+            JSONObject allResults = results.getJSONObject(0);
+            JSONObject geometry = allResults.getJSONObject("geometry");
+            JSONObject location = geometry.getJSONObject("location");
+            latitude = location.getFloat("lat");
+            longitude = location.getFloat("lng");
         }
-        return new Vector2(rdX, rdY);
+        
+        Vector2 decimalCoordinates = new Vector2(latitude, longitude);
+        
+        return HelperMethods.convertFromDecimalToRd(decimalCoordinates);
     }
     
 }
