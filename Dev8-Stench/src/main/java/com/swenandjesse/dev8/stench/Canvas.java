@@ -15,6 +15,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -28,12 +29,12 @@ import processing.event.MouseEvent;
  * @author Jesse
  */
 public class Canvas extends PApplet {
-    
+
     public List<Complaint> complaints = Collections.synchronizedList(new ArrayList<Complaint>());
     public List<ComplaintCoordinates> complaintsCoordinates = Collections.synchronizedList(new ArrayList<ComplaintCoordinates>());
     private DataProvider provider;
-    
-    Canvas canvas;
+
+    private Canvas canvas;
 
     private final float maxScale = 2f;
     private Vector2<Integer> worldSize;
@@ -44,7 +45,8 @@ public class Canvas extends PApplet {
 
     private Vector2<Integer> mousePosition;
 
-    private PImage testImage;
+    private PImage mapImage;
+    private PImage crematoryImage;
 
     public List<Crematoria> crematorias = Collections.synchronizedList(new ArrayList<Crematoria>());
 
@@ -52,10 +54,10 @@ public class Canvas extends PApplet {
     public void setup() {
         frame.setTitle("Jesse and Swen - Development 8 - Assignment 4 - Stankoverlast");
 
-//        testImage = loadImage("testimage.jpg");
-        testImage = loadImage("map.png");
+        mapImage = loadImage("map_confirmed.png");
+        crematoryImage = loadImage("crematory_icon.png");
 
-        worldSize = new Vector2<>(testImage.width, testImage.height);
+        worldSize = new Vector2<>(mapImage.width, mapImage.height);
         viewport = new Vector2<>(600, 600);
         position = new Vector2<>(0f, 0f);
         drawArea = new Rect<>(0, 0, viewport.getX(), viewport.getY());
@@ -67,7 +69,7 @@ public class Canvas extends PApplet {
 
         provider = new DataProvider();
         provider.getCrematoriaList(this);
-        
+
         canvas = this;
         Thread t1 = new Thread(new Runnable() {
             @Override
@@ -75,15 +77,14 @@ public class Canvas extends PApplet {
                 provider.getComplaintList(canvas);
             }
         });
-        
-        
+
         Thread t2 = new Thread(new Runnable() {
             @Override
             public void run() {
                 try {
                     //Give first thread a little head start to load some data in the complaint list
                     //This will prevent the list to be empty when this thread starts
-                    Thread.sleep(10);
+                    Thread.sleep(2);
                     provider.getDataWithCoordinates(canvas);
                 } catch (Exception ex) {
                     Logger.getLogger(Canvas.class.getName()).log(Level.SEVERE, null, ex);
@@ -98,7 +99,7 @@ public class Canvas extends PApplet {
 
     @Override
     public void draw() {
-        System.out.println(complaints.size() + " - " + complaintsCoordinates.size());
+//        System.out.println(complaints.size() + " - " + complaintsCoordinates.size());
         clear();
         mousePosition = new Vector2<>(mouseX, mouseY);
 
@@ -107,12 +108,21 @@ public class Canvas extends PApplet {
         translate(-position.getX(), -position.getY());
         scale(scale);
 
-        image(testImage, 0, 0);
+        image(mapImage, 0, 0);
 
         for (Crematoria crematoria : crematorias) {
-            fill(255, 0, 0);
-            stroke(0);
-            ellipse(map(crematoria.getRdX(), 56682, 107674, drawArea.getX(), drawArea.getX() + drawArea.getWidth()), map(crematoria.getRdY(), 447962, 431038, drawArea.getY(), drawArea.getY() + drawArea.getHeight()), 5, 5);
+//            fill(255, 0, 0);
+//            stroke(0);
+            //ellipse(mapRdX(crematoria.getRdX()), mapRdY(crematoria.getRdY()), 5, 5);
+            image(crematoryImage, mapRdX(crematoria.getRdX()) - 8, mapRdY(crematoria.getRdY()) - 8, 16, 16);
+        }
+
+        synchronized (complaintsCoordinates) {
+            for (ComplaintCoordinates complaintCoordinate : complaintsCoordinates) {
+                fill(255, 0, 0);
+                stroke(0);
+                ellipse(mapRdX((long) complaintCoordinate.getCoordinates().getX()), mapRdY((long) complaintCoordinate.getCoordinates().getY()), 5, 5);
+            }
         }
 
         // Static / Absolute, for UI
@@ -146,7 +156,7 @@ public class Canvas extends PApplet {
         float e = -event.getCount();
 
         // Restrict scale so it won't show an empty screen when the user zooms too far out
-        if (!(testImage.width * (scale + e / 10) < viewport.getX() || testImage.height * (scale + e / 10) < viewport.getY()) && scale + e / 10 < maxScale) {
+        if (!(mapImage.width * (scale + e / 10) < viewport.getX() || mapImage.height * (scale + e / 10) < viewport.getY()) && scale + e / 10 < maxScale) {
             scale += e / 10;
         }
 
@@ -168,5 +178,21 @@ public class Canvas extends PApplet {
         if (position.getY() > worldSize.getY() * scale - viewport.getY()) {
             position.setY(worldSize.getY() * scale - viewport.getY());
         }
+    }
+
+    private float mapRdX(int value) {
+        return map(value, 59373, 118118, drawArea.getX(), drawArea.getX() + worldSize.getX());
+    }
+
+    private float mapRdY(int value) {
+        return map(value, 473806, 419058, drawArea.getY(), drawArea.getY() + worldSize.getY());
+    }
+
+    private float mapRdX(long value) {
+        return map(value, 59373, 118118, drawArea.getX(), drawArea.getX() + worldSize.getX());
+    }
+
+    private float mapRdY(long value) {
+        return map(value, 473806, 419058, drawArea.getY(), drawArea.getY() + worldSize.getY());
     }
 }
