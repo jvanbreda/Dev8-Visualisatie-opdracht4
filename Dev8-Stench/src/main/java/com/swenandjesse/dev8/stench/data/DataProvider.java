@@ -7,9 +7,9 @@ package com.swenandjesse.dev8.stench.data;
 
 import com.sun.javafx.fxml.builder.URLBuilder;
 import com.swenandjesse.dev8.stench.Canvas;
+import com.swenandjesse.dev8.stench.ConfigReader;
 import com.swenandjesse.dev8.stench.HelperMethods;
 import com.swenandjesse.dev8.stench.models.Complaint;
-import com.swenandjesse.dev8.stench.models.ComplaintCoordinates;
 import com.swenandjesse.dev8.stench.models.Crematoria;
 import com.swenandjesse.dev8.stench.models.Vector2;
 import java.io.BufferedReader;
@@ -34,11 +34,8 @@ import processing.data.JSONObject;
  * @author Jesse
  */
 public class DataProvider {
-
-    //Used for old lookup method for postcode coordinates, with the use of the google api, this one is deprecated
-    //private final String API_KEY = "7aKDCk1a2C12QMLRq7coN23h4Fcu4Lar5KaTLZVJ";
     
-    private final String API_KEY = "AIzaSyC-c1Hy0PuEoG7WpFLHQAXdOI1bqPJRziM";
+    private final String API_KEY = new ConfigReader().getAPIkey();
 
     public void getComplaintList(Canvas canvas) {
         ClassLoader classLoader = getClass().getClassLoader();
@@ -64,37 +61,31 @@ public class DataProvider {
                 c.setComplaintSubSubType(lineScanner.next());
                 c.setFeedbackRequested(lineScanner.next().equalsIgnoreCase("j"));
                 
-                canvas.complaints.add(c);
+                if (c.getComplaintType().equalsIgnoreCase("Stank") && !c.getPostCode().equals("")){
+                    Vector2 coordinates = getCoordinatesFrom(c);
+                    c.setCoordinates(coordinates);
+                    canvas.complaints.add(c);
+                }                
             }
         } catch (IOException e) {
             System.err.println("IO Exception occured while reading the data!");
         }
     }
 
-    public void getDataWithCoordinates(Canvas canvas) {
+    private Vector2 getCoordinatesFrom(Complaint c) {
         try {
             StringBuilder sb = new StringBuilder();
-            String baseURL = "https://maps.googleapis.com/maps/api/geocode/json?key=";
-            sb.append(baseURL);
+            sb.append("https://maps.googleapis.com/maps/api/geocode/json?key=");
             sb.append(API_KEY);
-            for (int i = 0; i < canvas.complaints.size(); i++) {
-                Complaint c = canvas.complaints.get(i);
-                if (!c.getPostCode().equals("") && c.getComplaintType().equalsIgnoreCase("Stank")) {
-                    sb.setLength(baseURL.length() + API_KEY.length());
-                    sb.append("&address=");
-                    sb.append(c.getPostCode());
-                    System.out.println(sb.toString());
-                    JSONObject jObject = getResponseJSON(new URL(sb.toString()));
-                    ComplaintCoordinates cc = new ComplaintCoordinates();
-                    cc.setComplaint(c);
-                    cc.setCoordinates(getCoordinates(jObject));
-                    canvas.addCoordinate(cc);
-                }
-            }
+            sb.append("&address=");
+            sb.append(c.getPostCode());
+            System.out.println(sb.toString());
+            JSONObject jObject = getResponseJSON(new URL(sb.toString()));
+            return getCoordinates(jObject);
         } catch (MalformedURLException e) {
             System.out.println("Exception occurred during converting");
         }
-
+        return new Vector2(0,0);
     }
 
     private JSONObject getResponseJSON(URL url) {

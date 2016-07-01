@@ -8,10 +8,10 @@ package com.swenandjesse.dev8.stench;
 import com.swenandjesse.dev8.stench.data.DataProvider;
 import com.swenandjesse.dev8.stench.heatmap.Heatmap;
 import com.swenandjesse.dev8.stench.models.Complaint;
-import com.swenandjesse.dev8.stench.models.ComplaintCoordinates;
 import com.swenandjesse.dev8.stench.models.Crematoria;
 import com.swenandjesse.dev8.stench.models.Rect;
 import com.swenandjesse.dev8.stench.models.Vector2;
+import java.io.File;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
@@ -32,10 +32,9 @@ import processing.event.MouseEvent;
 public class Canvas extends PApplet {
 
     public List<Complaint> complaints = Collections.synchronizedList(new ArrayList<Complaint>());
-    public List<ComplaintCoordinates> complaintsCoordinates = Collections.synchronizedList(new ArrayList<ComplaintCoordinates>());
     private DataProvider provider;
-
-    private Canvas canvas;
+    
+    Canvas canvas = this;
 
     private final float maxScale = 2f;
     private Vector2<Integer> worldSize;
@@ -72,32 +71,16 @@ public class Canvas extends PApplet {
 
         provider = new DataProvider();
         provider.getCrematoriaList(this);
-
-        canvas = this;
-        Thread t1 = new Thread(new Runnable() {
+        
+        
+        Thread t1 = new Thread(new Runnable(){
             @Override
             public void run() {
                 provider.getComplaintList(canvas);
-            }
+            } 
         });
-
-        Thread t2 = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    //Give first thread a little head start to load some data in the complaint list
-                    //This will prevent the list to be empty when this thread starts
-                    Thread.sleep(4);
-                    provider.getDataWithCoordinates(canvas);
-                } catch (Exception ex) {
-                    Logger.getLogger(Canvas.class.getName()).log(Level.SEVERE, null, ex);
-                }
-            }
-        });
-        t1.setPriority(Thread.MIN_PRIORITY);
+        
         t1.start();
-        t2.setPriority(Thread.MIN_PRIORITY);
-        t2.start();
         
         heatmap = new Heatmap(this, new Rect<Integer>(drawArea.getX(), drawArea.getY(), drawArea.getX() + worldSize.getX(), drawArea.getY() + worldSize.getY()));
     }
@@ -170,10 +153,11 @@ public class Canvas extends PApplet {
         clampPosition();
     }
     
-    public void addCoordinate(ComplaintCoordinates coord) {
-        complaintsCoordinates.add(coord);
-        heatmap.addPoint(new Vector2<Integer>(Math.round(mapRdX((long)coord.getCoordinates().getX())), Math.round(mapRdY((long)coord.getCoordinates().getY()))));
-    }
+      // This method uses ComplaintCoordinates, can you check whether this needs to be changed?
+//    public void addCoordinate(ComplaintCoordinates coord) {
+//        complaintsCoordinates.add(coord);
+//        heatmap.addPoint(new Vector2<Integer>(Math.round(mapRdX((long)coord.getCoordinates().getX())), Math.round(mapRdY((long)coord.getCoordinates().getY()))));
+//    }
 
     //To-do: Should be a method with parameters to clamp, so that it can be used for both position and scale
     private void clampPosition() {
