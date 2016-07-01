@@ -74,16 +74,16 @@ public class DataProvider {
     public void getDataWithCoordinates(Canvas canvas) {
         try {
             StringBuilder sb = new StringBuilder();
-            String baseURL = "http://maps.googleapis.com/maps/api/geocode/json?key=";
+            String baseURL = "https://maps.googleapis.com/maps/api/geocode/json?key=";
             sb.append(baseURL);
             sb.append(API_KEY);
             for (int i = 0; i < canvas.complaints.size(); i++) {
                 Complaint c = canvas.complaints.get(i);
                 if (!c.getPostCode().equals("") && c.getComplaintType().equalsIgnoreCase("Stank")) {
-                    sb.setLength(baseURL.length());
+                    sb.setLength(baseURL.length() + API_KEY.length());
                     sb.append("&address=");
                     sb.append(c.getPostCode());
-                    //System.out.println(sb.toString());
+                    System.out.println(sb.toString());
                     JSONObject jObject = getResponseJSON(new URL(sb.toString()));
                     ComplaintCoordinates cc = new ComplaintCoordinates();
                     cc.setComplaint(c);
