@@ -21,6 +21,8 @@ public class Complaint {
     private String complaintSubType;
     private String complaintSubSubType;
     private boolean feedbackRequested;
+    
+    private Vector2 coordinates;
 
     public String getComplaintMedium() {
         return complaintMedium;
@@ -105,6 +107,14 @@ public class Complaint {
     @Override
     public String toString(){
         return "Complaint: " + complaintMedium + "|" + date + "|" + count + "|" + streetName + "|" + postCode + "|" + complaintType;
+    }
+
+    public Vector2 getCoordinates() {
+        return coordinates;
+    }
+
+    public void setCoordinates(Vector2 coordinates) {
+        this.coordinates = coordinates;
     }
 
     
