@@ -6,6 +6,7 @@
 package com.swenandjesse.dev8.stench;
 
 import com.swenandjesse.dev8.stench.data.DataProvider;
+import com.swenandjesse.dev8.stench.heatmap.Heatmap;
 import com.swenandjesse.dev8.stench.models.Complaint;
 import com.swenandjesse.dev8.stench.models.ComplaintCoordinates;
 import com.swenandjesse.dev8.stench.models.Crematoria;
@@ -49,6 +50,8 @@ public class Canvas extends PApplet {
     private PImage crematoryImage;
 
     public List<Crematoria> crematorias = Collections.synchronizedList(new ArrayList<Crematoria>());
+    
+    private Heatmap heatmap;
 
     @Override
     public void setup() {
@@ -84,7 +87,7 @@ public class Canvas extends PApplet {
                 try {
                     //Give first thread a little head start to load some data in the complaint list
                     //This will prevent the list to be empty when this thread starts
-                    Thread.sleep(2);
+                    Thread.sleep(4);
                     provider.getDataWithCoordinates(canvas);
                 } catch (Exception ex) {
                     Logger.getLogger(Canvas.class.getName()).log(Level.SEVERE, null, ex);
@@ -95,11 +98,12 @@ public class Canvas extends PApplet {
         t1.start();
         t2.setPriority(Thread.MIN_PRIORITY);
         t2.start();
+        
+        heatmap = new Heatmap(this, new Rect<Integer>(drawArea.getX(), drawArea.getY(), drawArea.getX() + worldSize.getX(), drawArea.getY() + worldSize.getY()));
     }
 
     @Override
     public void draw() {
-//        System.out.println(complaints.size() + " - " + complaintsCoordinates.size());
         clear();
         mousePosition = new Vector2<>(mouseX, mouseY);
 
@@ -117,13 +121,15 @@ public class Canvas extends PApplet {
             image(crematoryImage, mapRdX(crematoria.getRdX()) - 8, mapRdY(crematoria.getRdY()) - 8, 16, 16);
         }
 
-        synchronized (complaintsCoordinates) {
-            for (ComplaintCoordinates complaintCoordinate : complaintsCoordinates) {
-                fill(255, 0, 0);
-                stroke(0);
-                ellipse(mapRdX((long) complaintCoordinate.getCoordinates().getX()), mapRdY((long) complaintCoordinate.getCoordinates().getY()), 5, 5);
-            }
-        }
+//        synchronized (complaintsCoordinates) {
+//            for (ComplaintCoordinates complaintCoordinate : complaintsCoordinates) {
+//                fill(255, 0, 0);
+//                stroke(0);
+//                ellipse(mapRdX((long) complaintCoordinate.getCoordinates().getX()), mapRdY((long) complaintCoordinate.getCoordinates().getY()), 5, 5);
+//            }
+//        }
+        
+        heatmap.draw();
 
         // Static / Absolute, for UI
         popMatrix();
@@ -143,7 +149,7 @@ public class Canvas extends PApplet {
         Vector2<Float> mousePositionDelta = new Vector2<>((float) mousePosition.getX() - mouseX, (float) mousePosition.getY() - mouseY);
         position = Vector2.Sum(position, Vector2.Divide(mousePositionDelta, 5));
 
-        ClampPosition();
+        clampPosition();
     }
 
     @Override
@@ -158,13 +164,19 @@ public class Canvas extends PApplet {
         // Restrict scale so it won't show an empty screen when the user zooms too far out
         if (!(mapImage.width * (scale + e / 10) < viewport.getX() || mapImage.height * (scale + e / 10) < viewport.getY()) && scale + e / 10 < maxScale) {
             scale += e / 10;
+            heatmap.setScale(scale);
         }
-
-        ClampPosition();
+        
+        clampPosition();
+    }
+    
+    public void addCoordinate(ComplaintCoordinates coord) {
+        complaintsCoordinates.add(coord);
+        heatmap.addPoint(new Vector2<Integer>(Math.round(mapRdX((long)coord.getCoordinates().getX())), Math.round(mapRdY((long)coord.getCoordinates().getY()))));
     }
 
     //To-do: Should be a method with parameters to clamp, so that it can be used for both position and scale
-    private void ClampPosition() {
+    private void clampPosition() {
         // Clamp position so it won't show an empty screen when the user moves too far
         if (position.getX() < 0) {
             position.setX(0f);

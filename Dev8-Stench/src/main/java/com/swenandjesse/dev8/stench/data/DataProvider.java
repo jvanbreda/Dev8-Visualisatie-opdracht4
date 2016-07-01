@@ -88,7 +88,7 @@ public class DataProvider {
                     ComplaintCoordinates cc = new ComplaintCoordinates();
                     cc.setComplaint(c);
                     cc.setCoordinates(getCoordinates(jObject));
-                    canvas.complaintsCoordinates.add(cc);
+                    canvas.addCoordinate(cc);
                 }
             }
         } catch (MalformedURLException e) {
