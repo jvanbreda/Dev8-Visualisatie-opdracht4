@@ -12,12 +12,17 @@ import com.swenandjesse.dev8.stench.models.ComplaintCoordinates;
 import com.swenandjesse.dev8.stench.models.Crematoria;
 import com.swenandjesse.dev8.stench.models.Rect;
 import com.swenandjesse.dev8.stench.models.Vector2;
+import com.swenandjesse.dev8.stench.ui.ToggleButton;
+import com.swenandjesse.dev8.stench.ui.UIOverlay;
+import com.swenandjesse.dev8.stench.ui.legend.Legend;
+import com.swenandjesse.dev8.stench.ui.legend.LegendItem;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Random;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import processing.core.PApplet;
@@ -50,8 +55,12 @@ public class Canvas extends PApplet {
     private PImage crematoryImage;
 
     public List<Crematoria> crematorias = Collections.synchronizedList(new ArrayList<Crematoria>());
-    
+
     private Heatmap heatmap;
+    private UIOverlay ui;
+    private Legend legend;
+
+    private boolean showCrematoria = true;
 
     @Override
     public void setup() {
@@ -77,7 +86,7 @@ public class Canvas extends PApplet {
         Thread t1 = new Thread(new Runnable() {
             @Override
             public void run() {
-                provider.getComplaintList(canvas);
+                //provider.getComplaintList(canvas);
             }
         });
 
@@ -88,7 +97,7 @@ public class Canvas extends PApplet {
                     //Give first thread a little head start to load some data in the complaint list
                     //This will prevent the list to be empty when this thread starts
                     Thread.sleep(4);
-                    provider.getDataWithCoordinates(canvas);
+                    //provider.getDataWithCoordinates(canvas);
                 } catch (Exception ex) {
                     Logger.getLogger(Canvas.class.getName()).log(Level.SEVERE, null, ex);
                 }
@@ -98,8 +107,51 @@ public class Canvas extends PApplet {
         t1.start();
         t2.setPriority(Thread.MIN_PRIORITY);
         t2.start();
-        
+
         heatmap = new Heatmap(this, new Rect<Integer>(drawArea.getX(), drawArea.getY(), drawArea.getX() + worldSize.getX(), drawArea.getY() + worldSize.getY()));
+        ui = new UIOverlay(this);
+        ui.pushElement(new ToggleButton(this, "Heatmap", "Heatmap", new Rect<>(width - 96 - 12, 128, 96, 28)) {
+
+            @Override
+            protected void onToggleOn() {
+                heatmap.setEnabled(true);
+            }
+
+            @Override
+            protected void onToggleOff() {
+                heatmap.setEnabled(false);
+            }
+        });
+        ui.pushElement(new ToggleButton(this, "Crematoria", "Crematoria", new Rect<>(width - 96 - 12, 160, 96, 28), true) {
+
+            @Override
+            protected void onToggleOn() {
+                showCrematoria = true;
+            }
+
+            @Override
+            protected void onToggleOff() {
+                showCrematoria = false;
+            }
+        });
+        
+        PImage pepeImage = loadImage("Pepe_rare.png");
+        
+        legend = new Legend(this);
+        legend.pushItem(new LegendItem(crematoryImage, "Crematory"));
+        legend.pushItem(new LegendItem(pepeImage, "Rare Pepe"));
+
+        Random random = new Random();
+        // Test
+        for (int i = 0; i < 100; i++) {
+            heatmap.addPoint(new Vector2<>(Math.round(mapRdX(59373 + random.nextInt(58745))), Math.round(mapRdY(419058 + random.nextInt(54748)))));
+        }
+
+        for (int i = 0; i < 2; i++) {
+            heatmap.addPoint(new Vector2<>(Math.round(mapRdX(59373 + 58745 / 2)), Math.round(mapRdY(419058 + 54748 / 2))));
+        }
+
+        heatmap.printMatrixToFile();
     }
 
     @Override
@@ -114,11 +166,10 @@ public class Canvas extends PApplet {
 
         image(mapImage, 0, 0);
 
-        for (Crematoria crematoria : crematorias) {
-//            fill(255, 0, 0);
-//            stroke(0);
-            //ellipse(mapRdX(crematoria.getRdX()), mapRdY(crematoria.getRdY()), 5, 5);
-            image(crematoryImage, mapRdX(crematoria.getRdX()) - 8, mapRdY(crematoria.getRdY()) - 8, 16, 16);
+        if (showCrematoria) {
+            for (Crematoria crematoria : crematorias) {
+                image(crematoryImage, mapRdX(crematoria.getRdX()) - 8, mapRdY(crematoria.getRdY()) - 8, 16, 16);
+            }
         }
 
 //        synchronized (complaintsCoordinates) {
@@ -128,28 +179,34 @@ public class Canvas extends PApplet {
 //                ellipse(mapRdX((long) complaintCoordinate.getCoordinates().getX()), mapRdY((long) complaintCoordinate.getCoordinates().getY()), 5, 5);
 //            }
 //        }
-        
         heatmap.draw();
 
         // Static / Absolute, for UI
         popMatrix();
         fill(0);
+        textAlign(LEFT, BOTTOM);
         textSize(24);
         text("Hold and drag your move around", width - 16 - textWidth("Hold and drag your move around"), 16 + textAscent());
         text("Scroll the mouse wheel to zoom", width - 16 - textWidth("Scroll the mouse wheel to zoom"), 16 + textAscent() * 2 + 8);
+        ui.draw();
+        legend.draw();
     }
 
     @Override
     public void mousePressed() {
-        cursor(MOVE);
+        ui.checkClick(new Vector2<Integer>(mouseX, mouseY));
     }
 
     @Override
     public void mouseDragged() {
+        cursor(MOVE);
+
         Vector2<Float> mousePositionDelta = new Vector2<>((float) mousePosition.getX() - mouseX, (float) mousePosition.getY() - mouseY);
         position = Vector2.Sum(position, Vector2.Divide(mousePositionDelta, 5));
 
         clampPosition();
+        
+//        heatmap.setArea(new Rect<>(Math.round(position.getX()), Math.round(position.getY()), width, height));
     }
 
     @Override
@@ -166,13 +223,15 @@ public class Canvas extends PApplet {
             scale += e / 10;
             heatmap.setScale(scale);
         }
-        
+
         clampPosition();
+        
+//        heatmap.setArea(new Rect<>(Math.round(position.getX()), Math.round(position.getY()), Math.round(width - worldSize.getX() * scale), Math.round(height - worldSize.getY() * scale)));
     }
-    
+
     public void addCoordinate(ComplaintCoordinates coord) {
         complaintsCoordinates.add(coord);
-        heatmap.addPoint(new Vector2<Integer>(Math.round(mapRdX((long)coord.getCoordinates().getX())), Math.round(mapRdY((long)coord.getCoordinates().getY()))));
+        heatmap.addPoint(new Vector2<Integer>(Math.round(mapRdX((long) coord.getCoordinates().getX())), Math.round(mapRdY((long) coord.getCoordinates().getY()))));
     }
 
     //To-do: Should be a method with parameters to clamp, so that it can be used for both position and scale
