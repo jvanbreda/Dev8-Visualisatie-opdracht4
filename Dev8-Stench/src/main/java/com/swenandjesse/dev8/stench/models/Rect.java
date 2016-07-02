@@ -55,4 +55,9 @@ public class Rect<T> {
     public void setHeight(T height) {
         this.height = height;
     }
+    
+    @Override
+    public String toString() {
+        return "Rect[x: " + x + "; y: " + y + "; width: " + width + "; height: " + height + "]";
+    }
 }
