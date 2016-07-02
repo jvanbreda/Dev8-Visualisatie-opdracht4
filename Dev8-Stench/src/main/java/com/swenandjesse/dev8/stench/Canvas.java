@@ -8,7 +8,6 @@ package com.swenandjesse.dev8.stench;
 import com.swenandjesse.dev8.stench.data.DataProvider;
 import com.swenandjesse.dev8.stench.heatmap.Heatmap;
 import com.swenandjesse.dev8.stench.models.Complaint;
-import com.swenandjesse.dev8.stench.models.ComplaintCoordinates;
 import com.swenandjesse.dev8.stench.models.Crematoria;
 import com.swenandjesse.dev8.stench.models.Rect;
 import com.swenandjesse.dev8.stench.models.Vector2;
@@ -16,6 +15,7 @@ import com.swenandjesse.dev8.stench.ui.ToggleButton;
 import com.swenandjesse.dev8.stench.ui.UIOverlay;
 import com.swenandjesse.dev8.stench.ui.legend.Legend;
 import com.swenandjesse.dev8.stench.ui.legend.LegendItem;
+import java.io.File;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
@@ -37,10 +37,9 @@ import processing.event.MouseEvent;
 public class Canvas extends PApplet {
 
     public List<Complaint> complaints = Collections.synchronizedList(new ArrayList<Complaint>());
-    public List<ComplaintCoordinates> complaintsCoordinates = Collections.synchronizedList(new ArrayList<ComplaintCoordinates>());
     private DataProvider provider;
-
-    private Canvas canvas;
+    
+    Canvas canvas = this;
 
     private final float maxScale = 2f;
     private Vector2<Integer> worldSize;
@@ -81,12 +80,12 @@ public class Canvas extends PApplet {
 
         provider = new DataProvider();
         provider.getCrematoriaList(this);
-
-        canvas = this;
-        Thread t1 = new Thread(new Runnable() {
+        
+        
+        Thread t1 = new Thread(new Runnable(){
             @Override
             public void run() {
-                //provider.getComplaintList(canvas);
+                provider.getComplaintList(canvas);
             }
         });
 
@@ -229,8 +228,8 @@ public class Canvas extends PApplet {
 //        heatmap.setArea(new Rect<>(Math.round(position.getX()), Math.round(position.getY()), Math.round(width - worldSize.getX() * scale), Math.round(height - worldSize.getY() * scale)));
     }
 
-    public void addCoordinate(ComplaintCoordinates coord) {
-        complaintsCoordinates.add(coord);
+    public void addCoordinate(Complaint coord) {
+        complaints.add(coord);
         heatmap.addPoint(new Vector2<Integer>(Math.round(mapRdX((long) coord.getCoordinates().getX())), Math.round(mapRdY((long) coord.getCoordinates().getY()))));
     }
 
