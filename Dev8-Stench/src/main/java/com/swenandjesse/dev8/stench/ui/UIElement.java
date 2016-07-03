@@ -13,7 +13,7 @@ import processing.core.PApplet;
  *
  * @author swenm_000
  */
-public abstract class UIElement {
+public class UIElement {
     private final int padding = 8;
     
     protected PApplet applet;

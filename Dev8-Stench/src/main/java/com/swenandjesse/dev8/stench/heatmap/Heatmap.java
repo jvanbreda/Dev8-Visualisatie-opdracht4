@@ -47,6 +47,8 @@ public class Heatmap {
                 pixels[i][j] = 0;
             }
         }
+        
+        maxIntensity = pointRadius * 100;
     }
     
     public Heatmap(PApplet applet, Rect<Integer> worldspace, Rect<Integer> area) {
@@ -62,6 +64,8 @@ public class Heatmap {
                 pixels[i][j] = 0;
             }
         }
+        
+        maxIntensity = pointRadius * 100;
     }
 
     public Heatmap(PApplet applet, Rect<Integer> worldspace, Rect<Integer> area, Integer pointRadius) {
@@ -78,6 +82,8 @@ public class Heatmap {
                 pixels[i][j] = 0;
             }
         }
+        
+        maxIntensity = pointRadius * 100;
     }
 
     public void addPoint(Vector2<Integer> point) {
@@ -96,9 +102,9 @@ public class Heatmap {
 //                        if(newValue > pixels[point.getX() + i][point.getY() + j])
 //                            pixels[point.getX() + i][point.getY() + j] = newValue;
 
-                        if (pixels[point.getX() + i][point.getY() + j] > maxIntensity) {
-                            maxIntensity = pixels[point.getX() + i][point.getY() + j];
-                        }
+//                        if (pixels[point.getX() + i][point.getY() + j] > maxIntensity) {
+//                            maxIntensity = pixels[point.getX() + i][point.getY() + j];
+//                        }
                     }
                 }
             }
