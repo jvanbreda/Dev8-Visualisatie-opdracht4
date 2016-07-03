@@ -38,7 +38,7 @@ public class Canvas extends PApplet {
 
     public List<Complaint> complaints = Collections.synchronizedList(new ArrayList<Complaint>());
     private DataProvider provider;
-    
+
     Canvas canvas = this;
 
     private final float maxScale = 2f;
@@ -50,8 +50,7 @@ public class Canvas extends PApplet {
 
     private Vector2<Integer> mousePosition;
 
-    private PImage mapImage;
-    private PImage crematoryImage;
+    private PImage mapImage, crematoryImage, complaintImage;
 
     public List<Crematoria> crematorias = Collections.synchronizedList(new ArrayList<Crematoria>());
 
@@ -60,6 +59,7 @@ public class Canvas extends PApplet {
     private Legend legend;
 
     private boolean showCrematoria = true;
+    private boolean showComplaintLocations = false;
 
     @Override
     public void setup() {
@@ -67,6 +67,7 @@ public class Canvas extends PApplet {
 
         mapImage = loadImage("map_confirmed.png");
         crematoryImage = loadImage("crematory_icon.png");
+        complaintImage = loadImage("Sadface.png");
 
         worldSize = new Vector2<>(mapImage.width, mapImage.height);
         viewport = new Vector2<>(600, 600);
@@ -80,9 +81,8 @@ public class Canvas extends PApplet {
 
         provider = new DataProvider();
         provider.getCrematoriaList(this);
-        
-        
-        Thread t1 = new Thread(new Runnable(){
+
+        Thread t1 = new Thread(new Runnable() {
             @Override
             public void run() {
                 provider.getComplaintList(canvas);
@@ -109,7 +109,7 @@ public class Canvas extends PApplet {
 
         heatmap = new Heatmap(this, new Rect<Integer>(drawArea.getX(), drawArea.getY(), drawArea.getX() + worldSize.getX(), drawArea.getY() + worldSize.getY()));
         ui = new UIOverlay(this);
-        ui.pushElement(new ToggleButton(this, "Heatmap", "Heatmap", new Rect<>(width - 96 - 12, 128, 96, 28)) {
+        ui.pushElement(new ToggleButton(this, "Heatmap", "Heatmap", new Rect<>(width - 128 - 12, 128, 128, 28)) {
 
             @Override
             protected void onToggleOn() {
@@ -121,7 +121,7 @@ public class Canvas extends PApplet {
                 heatmap.setEnabled(false);
             }
         });
-        ui.pushElement(new ToggleButton(this, "Crematoria", "Crematoria", new Rect<>(width - 96 - 12, 160, 96, 28), true) {
+        ui.pushElement(new ToggleButton(this, "Crematoria", "Crematoria", new Rect<>(width - 128 - 12, 160, 128, 28), true) {
 
             @Override
             protected void onToggleOn() {
@@ -133,24 +133,36 @@ public class Canvas extends PApplet {
                 showCrematoria = false;
             }
         });
-        
+        ui.pushElement(new ToggleButton(this, "Complaint locations", "Complaint locations", new Rect<>(width - 128 - 12, 192, 128, 28)) {
+
+            @Override
+            protected void onToggleOn() {
+                showComplaintLocations = true;
+            }
+
+            @Override
+            protected void onToggleOff() {
+                showComplaintLocations = false;
+            }
+        });
+
         PImage pepeImage = loadImage("Pepe_rare.png");
-        
+
         legend = new Legend(this);
         legend.pushItem(new LegendItem(crematoryImage, "Crematory"));
-        legend.pushItem(new LegendItem(pepeImage, "Rare Pepe"));
+        legend.pushItem(new LegendItem(complaintImage, "Complaint"));
 
-        Random random = new Random();
-        // Test
-        for (int i = 0; i < 100; i++) {
-            heatmap.addPoint(new Vector2<>(Math.round(mapRdX(59373 + random.nextInt(58745))), Math.round(mapRdY(419058 + random.nextInt(54748)))));
-        }
-
-        for (int i = 0; i < 2; i++) {
-            heatmap.addPoint(new Vector2<>(Math.round(mapRdX(59373 + 58745 / 2)), Math.round(mapRdY(419058 + 54748 / 2))));
-        }
-
-        heatmap.printMatrixToFile();
+//        Random random = new Random();
+//        // Test
+//        for (int i = 0; i < 100; i++) {
+//            heatmap.addPoint(new Vector2<>(Math.round(mapRdX(59373 + random.nextInt(58745))), Math.round(mapRdY(419058 + random.nextInt(54748)))));
+//        }
+//
+//        for (int i = 0; i < 2; i++) {
+//            heatmap.addPoint(new Vector2<>(Math.round(mapRdX(59373 + 58745 / 2)), Math.round(mapRdY(419058 + 54748 / 2))));
+//        }
+//
+//        heatmap.printMatrixToFile();
     }
 
     @Override
@@ -171,13 +183,18 @@ public class Canvas extends PApplet {
             }
         }
 
-//        synchronized (complaintsCoordinates) {
-//            for (ComplaintCoordinates complaintCoordinate : complaintsCoordinates) {
-//                fill(255, 0, 0);
-//                stroke(0);
-//                ellipse(mapRdX((long) complaintCoordinate.getCoordinates().getX()), mapRdY((long) complaintCoordinate.getCoordinates().getY()), 5, 5);
-//            }
-//        }
+        if (showComplaintLocations) {
+            synchronized (complaints) {
+                for (Complaint complaint : complaints) {
+//                    fill(255, 0, 0);
+//                    stroke(0);
+//                    ellipse(mapRdX((long) complaint.getCoordinates().getX()), mapRdY((long) complaint.getCoordinates().getY()), 5, 5);
+                    
+                    image(complaintImage, mapRdX((long) complaint.getCoordinates().getX()), mapRdY((long) complaint.getCoordinates().getY()), 16, 16);
+                }
+            }
+        }
+
         heatmap.draw();
 
         // Static / Absolute, for UI
@@ -204,7 +221,6 @@ public class Canvas extends PApplet {
         position = Vector2.Sum(position, Vector2.Divide(mousePositionDelta, 5));
 
         clampPosition();
-        
 //        heatmap.setArea(new Rect<>(Math.round(position.getX()), Math.round(position.getY()), width, height));
     }
 
@@ -224,7 +240,7 @@ public class Canvas extends PApplet {
         }
 
         clampPosition();
-        
+
 //        heatmap.setArea(new Rect<>(Math.round(position.getX()), Math.round(position.getY()), Math.round(width - worldSize.getX() * scale), Math.round(height - worldSize.getY() * scale)));
     }
 

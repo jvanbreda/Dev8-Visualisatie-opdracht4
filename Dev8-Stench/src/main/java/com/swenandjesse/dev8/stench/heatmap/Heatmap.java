@@ -28,7 +28,7 @@ public class Heatmap {
     
     private boolean enabled = false;
 
-    private Integer pointRadius = 128;
+    private Integer pointRadius = 64;
     private Integer pointRadiusCenter;
 
     private int maxIntensity = Integer.MIN_VALUE;
@@ -40,7 +40,7 @@ public class Heatmap {
         this.area = worldspace;
 
         pixels = new Integer[worldspace.getWidth()][worldspace.getWidth()];
-        pointRadiusCenter = pointRadius / 2; // + 1?
+        pointRadiusCenter = pointRadius / 2;
 
         for (int i = 0; i < pixels.length; i++) {
             for (int j = 0; j < pixels[0].length; j++) {
@@ -55,7 +55,7 @@ public class Heatmap {
         this.area = area;
 
         pixels = new Integer[worldspace.getWidth()][worldspace.getWidth()];
-        pointRadiusCenter = pointRadius / 2; // + 1?
+        pointRadiusCenter = pointRadius / 2;
 
         for (int i = 0; i < pixels.length; i++) {
             for (int j = 0; j < pixels[0].length; j++) {
@@ -71,7 +71,7 @@ public class Heatmap {
         this.pointRadius = pointRadius;
 
         pixels = new Integer[worldspace.getWidth()][worldspace.getWidth()];
-        pointRadiusCenter = pointRadius / 2; // + 1?
+        pointRadiusCenter = pointRadius / 2;
 
         for (int i = 0; i < pixels.length; i++) {
             for (int j = 0; j < pixels[0].length; j++) {
@@ -110,8 +110,6 @@ public class Heatmap {
             return;
         applet.noStroke();
         
-//        for (int i = 0; i < pixels.length; i++) {
-//            for (int j = 0; j < pixels[0].length; j++) {
         for (int i = area.getX(); i < area.getX() + area.getWidth(); i++) {
             for (int j = area.getY(); j < area.getY() + area.getHeight(); j++) {
                 if(i >= worldspace.getWidth() || j >= worldspace.getHeight())
@@ -120,7 +118,11 @@ public class Heatmap {
                 if (pixels[i][j] <= 0) {
                     continue;
                 }
-                applet.fill(255, 255 - applet.map(pixels[i][j], 0, maxIntensity, 0, 255), 0, 200);
+                float value = applet.map(pixels[i][j], 0, maxIntensity, 0, 510);
+                if(value <= 255)
+                    applet.fill(value, 255, 0, 200);
+                else
+                    applet.fill(255, 510 - value, 0, 200);
                 applet.ellipse(i + worldspace.getX(), j + worldspace.getY(), 1, 1);
 //                applet.stroke(255, 255 - applet.map(pixels[i][j], 0, maxIntensity, 0, 255), 0, 200);
 //                applet.point(i + area.getX(), j + area.getY());

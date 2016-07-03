@@ -7,7 +7,7 @@ package com.swenandjesse.dev8.stench.data;
 
 import com.sun.javafx.fxml.builder.URLBuilder;
 import com.swenandjesse.dev8.stench.Canvas;
-import com.swenandjesse.dev8.stench.ConfigReader;
+import com.swenandjesse.dev8.stench.config.ConfigReader;
 import com.swenandjesse.dev8.stench.HelperMethods;
 import com.swenandjesse.dev8.stench.models.Complaint;
 import com.swenandjesse.dev8.stench.models.Crematoria;
@@ -64,7 +64,7 @@ public class DataProvider {
                 if (c.getComplaintType().equalsIgnoreCase("Stank") && !c.getPostCode().equals("")){
                     Vector2 coordinates = getCoordinatesFrom(c);
                     c.setCoordinates(coordinates);
-                    canvas.complaints.add(c);
+                    canvas.addCoordinate(c);
                 }                
             }
         } catch (IOException e) {
@@ -129,20 +129,6 @@ public class DataProvider {
         return HelperMethods.convertFromDecimalToRd(decimalCoordinates);
     }
 
-//    public String getData(URL url) {
-//        String allData = "";
-//        try {
-//            BufferedReader br = new BufferedReader(new InputStreamReader(url.openStream()));
-//            Iterator lines = br.lines().iterator();
-//            while (lines.hasNext()) {
-//                String line = (String) lines.next();
-//                allData += line + "\n";
-//            }
-//        } catch (IOException e) {
-//            System.err.println("IO Exception occured while reading the data!");
-//        }
-//        return allData;
-//    }
     public void getCrematoriaList(Canvas canvas) {
         ClassLoader classLoader = getClass().getClassLoader();
         File file = new File(classLoader.getResource("Crematoria_Rotterdam_eo.csv").getFile());
@@ -167,7 +153,6 @@ public class DataProvider {
             }
             
         } catch (IOException e) {
-            e.printStackTrace();
         }
     }
 }

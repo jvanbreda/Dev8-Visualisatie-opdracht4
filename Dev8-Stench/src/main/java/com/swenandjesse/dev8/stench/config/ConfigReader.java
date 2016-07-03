@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package com.swenandjesse.dev8.stench;
+package com.swenandjesse.dev8.stench.config;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -40,5 +40,8 @@ public class ConfigReader {
     public String getAPIkey() {
         return prop.getProperty("API-KEY");
     }
-
+    
+//    private String prompAPIkey() {
+//        
+//    }
 }
