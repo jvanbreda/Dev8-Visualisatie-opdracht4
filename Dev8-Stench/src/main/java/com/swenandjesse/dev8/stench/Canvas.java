@@ -12,6 +12,7 @@ import com.swenandjesse.dev8.stench.models.Crematoria;
 import com.swenandjesse.dev8.stench.models.Rect;
 import com.swenandjesse.dev8.stench.models.Vector2;
 import com.swenandjesse.dev8.stench.ui.ToggleButton;
+import com.swenandjesse.dev8.stench.ui.UIElement;
 import com.swenandjesse.dev8.stench.ui.UIOverlay;
 import com.swenandjesse.dev8.stench.ui.legend.Legend;
 import com.swenandjesse.dev8.stench.ui.legend.LegendItem;
@@ -25,6 +26,7 @@ import java.util.List;
 import java.util.Random;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import jdk.internal.org.objectweb.asm.Opcodes;
 import processing.core.PApplet;
 import processing.core.PImage;
 import processing.data.JSONObject;
@@ -50,16 +52,16 @@ public class Canvas extends PApplet {
 
     private Vector2<Integer> mousePosition;
 
-    private PImage mapImage, crematoryImage, complaintImage;
+    private PImage mapImage, crematoryImage, complaintImage, stenchComplaintImage;
 
     public List<Crematoria> crematorias = Collections.synchronizedList(new ArrayList<Crematoria>());
 
-    private Heatmap heatmap;
+    private Heatmap stenchHeatmap, complaintHeatmap;
     private UIOverlay ui;
     private Legend legend;
 
     private boolean showCrematoria = true;
-    private boolean showComplaintLocations = false;
+    private boolean showComplaintLocations, showStenchComplaintLocations = false;
 
     @Override
     public void setup() {
@@ -68,6 +70,7 @@ public class Canvas extends PApplet {
         mapImage = loadImage("map_confirmed.png");
         crematoryImage = loadImage("crematory_icon.png");
         complaintImage = loadImage("Sadface.png");
+        stenchComplaintImage = loadImage("Sadface_brown.png");
 
         worldSize = new Vector2<>(mapImage.width, mapImage.height);
         viewport = new Vector2<>(600, 600);
@@ -88,25 +91,41 @@ public class Canvas extends PApplet {
                 provider.getComplaintList(canvas);
             }
         });
-
         t1.setPriority(Thread.MIN_PRIORITY);
-        //t1.start();
+        t1.start();
 
-        heatmap = new Heatmap(this, new Rect<Integer>(drawArea.getX(), drawArea.getY(), drawArea.getX() + worldSize.getX(), drawArea.getY() + worldSize.getY()));
+        stenchHeatmap = new Heatmap(this, new Rect<Integer>(drawArea.getX(), drawArea.getY(), drawArea.getX() + worldSize.getX(), drawArea.getY() + worldSize.getY()));
+        complaintHeatmap = new Heatmap(this, new Rect<Integer>(drawArea.getX(), drawArea.getY(), drawArea.getX() + worldSize.getX(), drawArea.getY() + worldSize.getY()));
+        
         ui = new UIOverlay(this);
-        ui.pushElement(new ToggleButton(this, "Heatmap", "Heatmap", new Rect<>(width - 128 - 12, 128, 128, 28)) {
+        ui.pushElement(new UIElement(this, "Heatmaps", new Rect<>(width - 128 - 12, 96, 128, 28)));
+        ui.pushElement(new ToggleButton(this, "Stench", "Stench", new Rect<>(width - 128 - 12, 128, 128, 28)) {
 
             @Override
             protected void onToggleOn() {
-                heatmap.setEnabled(true);
+                stenchHeatmap.setEnabled(true);
             }
 
             @Override
             protected void onToggleOff() {
-                heatmap.setEnabled(false);
+                stenchHeatmap.setEnabled(false);
             }
         });
-        ui.pushElement(new ToggleButton(this, "Crematoria", "Crematoria", new Rect<>(width - 128 - 12, 160, 128, 28), true) {
+        ui.pushElement(new ToggleButton(this, "Other complaints", "Other complaints", new Rect<>(width - 128 - 12, 160, 128, 28)) {
+
+            @Override
+            protected void onToggleOn() {
+                complaintHeatmap.setEnabled(true);
+            }
+
+            @Override
+            protected void onToggleOff() {
+                complaintHeatmap.setEnabled(false);
+            }
+        });
+        
+        ui.pushElement(new UIElement(this, "Location markers", new Rect<>(width - 128 - 12, 192, 128, 28)));
+        ui.pushElement(new ToggleButton(this, "Crematoria", "Crematoria", new Rect<>(width - 128 - 12, 224, 128, 28), true) {
 
             @Override
             protected void onToggleOn() {
@@ -118,7 +137,7 @@ public class Canvas extends PApplet {
                 showCrematoria = false;
             }
         });
-        ui.pushElement(new ToggleButton(this, "Complaint locations", "Complaint locations", new Rect<>(width - 128 - 12, 192, 128, 28)) {
+        ui.pushElement(new ToggleButton(this, "Complaints", "Complaints", new Rect<>(width - 128 - 12, 256, 128, 28)) {
 
             @Override
             protected void onToggleOn() {
@@ -130,24 +149,35 @@ public class Canvas extends PApplet {
                 showComplaintLocations = false;
             }
         });
+        ui.pushElement(new ToggleButton(this, "Stench complaints", "Stench complaints", new Rect<>(width - 128 - 12, 288, 128, 28)) {
 
-        PImage pepeImage = loadImage("Pepe_rare.png");
+            @Override
+            protected void onToggleOn() {
+                showStenchComplaintLocations = true;
+            }
+
+            @Override
+            protected void onToggleOff() {
+                showStenchComplaintLocations = false;
+            }
+        });
 
         legend = new Legend(this);
         legend.pushItem(new LegendItem(crematoryImage, "Crematory"));
         legend.pushItem(new LegendItem(complaintImage, "Complaint"));
+        legend.pushItem(new LegendItem(stenchComplaintImage, "Stench complaint"));
 
 //        Random random = new Random();
 //        // Test
-//        for (int i = 0; i < 100; i++) {
-//            heatmap.addPoint(new Vector2<>(Math.round(mapRdX(59373 + random.nextInt(58745))), Math.round(mapRdY(419058 + random.nextInt(54748)))));
+//        for (int i = 0; i < 1000; i++) {
+//            stenchHeatmap.addPoint(new Vector2<>(Math.round(mapRdX(59373 + random.nextInt(58745))), Math.round(mapRdY(419058 + random.nextInt(54748)))));
 //        }
 //
-//        for (int i = 0; i < 2; i++) {
-//            heatmap.addPoint(new Vector2<>(Math.round(mapRdX(59373 + 58745 / 2)), Math.round(mapRdY(419058 + 54748 / 2))));
+//        for (int i = 0; i < 20; i++) {
+//            stenchHeatmap.addPoint(new Vector2<>(Math.round(mapRdX(59373 + 58745 / 2)), Math.round(mapRdY(419058 + 54748 / 2))));
 //        }
 //
-//        heatmap.printMatrixToFile();
+//        stenchHeatmap.printMatrixToFile();
     }
 
     @Override
@@ -171,16 +201,16 @@ public class Canvas extends PApplet {
         if (showComplaintLocations) {
             synchronized (complaints) {
                 for (Complaint complaint : complaints) {
-//                    fill(255, 0, 0);
-//                    stroke(0);
-//                    ellipse(mapRdX((long) complaint.getCoordinates().getX()), mapRdY((long) complaint.getCoordinates().getY()), 5, 5);
-                    
-                    image(complaintImage, mapRdX((long) complaint.getCoordinates().getX()), mapRdY((long) complaint.getCoordinates().getY()), 16, 16);
+                    if(complaint.getComplaintType().equalsIgnoreCase("Stank"))
+                        image(stenchComplaintImage, mapRdX((long) complaint.getCoordinates().getX()), mapRdY((long) complaint.getCoordinates().getY()), 16, 16);
+                    else
+                        image(complaintImage, mapRdX((long) complaint.getCoordinates().getX()), mapRdY((long) complaint.getCoordinates().getY()), 16, 16);
                 }
             }
         }
 
-        heatmap.draw();
+        stenchHeatmap.draw();
+        complaintHeatmap.draw();
 
         // Static / Absolute, for UI
         popMatrix();
@@ -221,7 +251,7 @@ public class Canvas extends PApplet {
         // Restrict scale so it won't show an empty screen when the user zooms too far out
         if (!(mapImage.width * (scale + e / 10) < viewport.getX() || mapImage.height * (scale + e / 10) < viewport.getY()) && scale + e / 10 < maxScale) {
             scale += e / 10;
-            heatmap.setScale(scale);
+            stenchHeatmap.setScale(scale);
         }
 
         clampPosition();
@@ -229,9 +259,12 @@ public class Canvas extends PApplet {
 //        heatmap.setArea(new Rect<>(Math.round(position.getX()), Math.round(position.getY()), Math.round(width - worldSize.getX() * scale), Math.round(height - worldSize.getY() * scale)));
     }
 
-    public void addCoordinate(Complaint coord) {
-        complaints.add(coord);
-        heatmap.addPoint(new Vector2<Integer>(Math.round(mapRdX((long) coord.getCoordinates().getX())), Math.round(mapRdY((long) coord.getCoordinates().getY()))));
+    public void addCoordinate(Complaint complaint) {
+        complaints.add(complaint);
+        if(complaint.getComplaintType().equalsIgnoreCase("Stank"))
+            stenchHeatmap.addPoint(new Vector2<Integer>(Math.round(mapRdX((long) complaint.getCoordinates().getX())), Math.round(mapRdY((long) complaint.getCoordinates().getY()))));
+        else
+            complaintHeatmap.addPoint(new Vector2<Integer>(Math.round(mapRdX((long) complaint.getCoordinates().getX())), Math.round(mapRdY((long) complaint.getCoordinates().getY()))));
     }
 
     //To-do: Should be a method with parameters to clamp, so that it can be used for both position and scale
