@@ -61,7 +61,7 @@ public class DataProvider {
                 c.setComplaintSubSubType(lineScanner.next());
                 c.setFeedbackRequested(lineScanner.next().equalsIgnoreCase("j"));
                 
-                if (c.getComplaintType().equalsIgnoreCase("Stank") && !c.getPostCode().equals("")){
+                if (!c.getPostCode().equals("")){
                     Vector2 coordinates = getCoordinatesFrom(c);
                     c.setCoordinates(coordinates);
                     canvas.addCoordinate(c);

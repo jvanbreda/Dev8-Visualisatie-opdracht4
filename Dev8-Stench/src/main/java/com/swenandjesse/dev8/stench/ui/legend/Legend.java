@@ -38,7 +38,7 @@ public class Legend {
         this.applet = applet;
         this.items = elements;
         
-        area = new Rect<>(applet.width - padding - offset - 128, applet.height - padding - offset - itemSize * elements.size(), 128, itemSize * (elements.size() + lineSpacing));
+        area = new Rect<>(applet.width - padding - offset - 192, applet.height - padding - offset - itemSize * elements.size(), 192, itemSize * (elements.size() + lineSpacing));
     }
 
     public void draw() {
@@ -52,13 +52,13 @@ public class Legend {
         for (int i = 0; i < items.size(); i++) {
             LegendItem item = items.get(i);
             applet.image(item.getImage(), area.getX() + padding, area.getY() + padding + (itemSize + lineSpacing) * i, itemSize, itemSize);
-            applet.text(item.getText(), area.getX() + padding * 2 + itemSize, area.getY() + padding + (itemSize + lineSpacing) * i);
+            applet.text(item.getText(), area.getX() + padding * 2 + itemSize, area.getY() + padding * 1.5f + (itemSize + lineSpacing) * i);
         }
     }
 
     public void pushItem(LegendItem element) {
         items.add(element);
-        area = new Rect<>(applet.width - padding - offset - 128, applet.height - padding - offset - itemSize / 2 * (items.size() + lineSpacing), 128, itemSize / 2 * (items.size() + lineSpacing));
+        area = new Rect<>(applet.width - padding - offset - 192, applet.height - padding - offset - itemSize / 2 * (items.size() + lineSpacing), 192, itemSize / 2 * (items.size() + lineSpacing) + padding);
     }
 
     public void popItem(LegendItem element) {
