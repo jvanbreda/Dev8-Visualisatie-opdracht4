@@ -28,7 +28,7 @@ public class Heatmap {
     
     private boolean enabled = false;
 
-    private Integer pointRadius = 128;
+    private Integer pointRadius = 64;
     private Integer pointRadiusCenter;
 
     private int maxIntensity = Integer.MIN_VALUE;
@@ -40,7 +40,7 @@ public class Heatmap {
         this.area = worldspace;
 
         pixels = new Integer[worldspace.getWidth()][worldspace.getWidth()];
-        pointRadiusCenter = pointRadius / 2; // + 1?
+        pointRadiusCenter = pointRadius / 2;
 
         for (int i = 0; i < pixels.length; i++) {
             for (int j = 0; j < pixels[0].length; j++) {
