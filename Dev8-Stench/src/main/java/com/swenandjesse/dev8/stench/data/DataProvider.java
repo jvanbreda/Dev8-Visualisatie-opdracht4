@@ -7,7 +7,7 @@ package com.swenandjesse.dev8.stench.data;
 
 import com.sun.javafx.fxml.builder.URLBuilder;
 import com.swenandjesse.dev8.stench.Canvas;
-import com.swenandjesse.dev8.stench.ConfigReader;
+import com.swenandjesse.dev8.stench.config.ConfigReader;
 import com.swenandjesse.dev8.stench.HelperMethods;
 import com.swenandjesse.dev8.stench.models.Complaint;
 import com.swenandjesse.dev8.stench.models.Crematoria;
