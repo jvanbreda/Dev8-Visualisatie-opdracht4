@@ -8,11 +8,14 @@ package com.swenandjesse.dev8.stench.config;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import static javax.swing.JOptionPane.showInputDialog;
 
 /**
  *
@@ -22,26 +25,45 @@ public class ConfigReader {
 
     private Properties prop;
     private InputStream input;
+    private OutputStream output;
+    private File file;
 
     public ConfigReader() {
+        prop = new Properties();
+        ClassLoader classLoader = getClass().getClassLoader();
+        file = new File(classLoader.getResource("config.properties").getFile());
+    }
+
+    public String getAPIkey() {
         try {
-            prop = new Properties();
-            ClassLoader classLoader = getClass().getClassLoader();
-            File file = new File(classLoader.getResource("config.properties").getFile());
             input = new FileInputStream(file);
             prop.load(input);
+            String apikey = prop.getProperty("API-KEY");
+            if (apikey == null) {
+                apikey = promptAPIKey();
+            }
+            return apikey;
         } catch (FileNotFoundException ex) {
             Logger.getLogger(ConfigReader.class.getName()).log(Level.SEVERE, null, ex);
         } catch (IOException ex) {
             Logger.getLogger(ConfigReader.class.getName()).log(Level.SEVERE, null, ex);
         }
+        return "";
     }
 
-    public String getAPIkey() {
-        return prop.getProperty("API-KEY");
+    private String promptAPIKey() {
+        try {
+            String apikey = showInputDialog("If you have an API key, type it in here so you can use this application");
+            output = new FileOutputStream(file);
+            prop.setProperty("API-KEY", apikey);
+            prop.store(output, file.getPath());
+            output.close();
+            return apikey;
+        } catch (FileNotFoundException ex) {
+            Logger.getLogger(ConfigReader.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (IOException ex) {
+            Logger.getLogger(ConfigReader.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return "";
     }
-    
-//    private String prompAPIkey() {
-//        
-//    }
 }

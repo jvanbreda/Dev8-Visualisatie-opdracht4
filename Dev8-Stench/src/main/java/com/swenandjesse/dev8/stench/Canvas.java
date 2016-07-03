@@ -89,23 +89,8 @@ public class Canvas extends PApplet {
             }
         });
 
-        Thread t2 = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    //Give first thread a little head start to load some data in the complaint list
-                    //This will prevent the list to be empty when this thread starts
-                    Thread.sleep(4);
-                    //provider.getDataWithCoordinates(canvas);
-                } catch (Exception ex) {
-                    Logger.getLogger(Canvas.class.getName()).log(Level.SEVERE, null, ex);
-                }
-            }
-        });
         t1.setPriority(Thread.MIN_PRIORITY);
-        t1.start();
-        t2.setPriority(Thread.MIN_PRIORITY);
-        t2.start();
+        //t1.start();
 
         heatmap = new Heatmap(this, new Rect<Integer>(drawArea.getX(), drawArea.getY(), drawArea.getX() + worldSize.getX(), drawArea.getY() + worldSize.getY()));
         ui = new UIOverlay(this);
