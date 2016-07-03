@@ -26,7 +26,6 @@ import java.util.List;
 import java.util.Random;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import jdk.internal.org.objectweb.asm.Opcodes;
 import processing.core.PApplet;
 import processing.core.PImage;
 import processing.data.JSONObject;
@@ -205,6 +204,15 @@ public class Canvas extends PApplet {
                         image(stenchComplaintImage, mapRdX((long) complaint.getCoordinates().getX()), mapRdY((long) complaint.getCoordinates().getY()), 16, 16);
                     else
                         image(complaintImage, mapRdX((long) complaint.getCoordinates().getX()), mapRdY((long) complaint.getCoordinates().getY()), 16, 16);
+                }
+            }
+        }
+        
+        if(showStenchComplaintLocations) {
+            synchronized (complaints) {
+                for (Complaint complaint : complaints) {
+                    if(complaint.getComplaintType().equalsIgnoreCase("Stank"))
+                        image(stenchComplaintImage, mapRdX((long) complaint.getCoordinates().getX()), mapRdY((long) complaint.getCoordinates().getY()), 16, 16);
                 }
             }
         }

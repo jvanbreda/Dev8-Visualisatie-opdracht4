@@ -5,6 +5,7 @@
  */
 package com.swenandjesse.dev8.stench.config;
 
+import com.swenandjesse.dev8.stench.Main;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -12,6 +13,9 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.PrintWriter;
+import java.io.UnsupportedEncodingException;
+import java.net.URL;
 import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -30,7 +34,18 @@ public class ConfigReader {
 
     public ConfigReader() {
         prop = new Properties();
-        ClassLoader classLoader = getClass().getClassLoader();
+        ClassLoader classLoader =  getClass().getClassLoader();
+        URL urlToFile = classLoader.getResource("config.properties");
+        if(urlToFile == null) {
+            try {
+                PrintWriter writer = new PrintWriter("config.properties", "UTF-8");
+                writer.close();
+            } catch (FileNotFoundException ex) {
+                Logger.getLogger(ConfigReader.class.getName()).log(Level.SEVERE, null, ex);
+            } catch (UnsupportedEncodingException ex) {
+                Logger.getLogger(ConfigReader.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
         file = new File(classLoader.getResource("config.properties").getFile());
     }
 
